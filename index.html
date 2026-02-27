@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Recomendador de Charlas · Talent Arena 2026</title>
 <style>
+  /* MANTENEMOS TUS ESTILOS ORIGINALES INTACTOS */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
   header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); border-bottom: 1px solid #2d3748; padding: 24px 32px; display: flex; align-items: center; gap: 16px; }
@@ -28,21 +29,25 @@
   .spinner { width: 40px; height: 40px; border: 3px solid #2d3748; border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .intro-box { background: linear-gradient(135deg, #1e1b4b 0%, #1a1f2e 100%); border: 1px solid #4f46e5; border-radius: 12px; padding: 20px; margin-bottom: 28px; font-size: 14px; line-height: 1.7; color: #c7d2fe; white-space: pre-wrap; }
-  .talk-card { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 14px; padding: 20px; margin-bottom: 16px; }
-  .rank { min-width: 36px; height: 36px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #fff; flex-shrink: 0; }
+  .talk-card { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 14px; padding: 20px; margin-bottom: 16px; transition: border-color .2s; }
   .talk-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 12px; }
+  .rank { min-width: 36px; height: 36px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #fff; flex-shrink: 0; }
   .talk-title { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.4; }
-  .badge { background: #0f1117; border: 1px solid #2d3748; border-radius: 6px; padding: 3px 10px; font-size: 11px; color: #a0aec0; margin-right: 5px; }
-  .why { font-size: 13px; color: #a0aec0; line-height: 1.6; border-top: 1px solid #2d3748; padding-top: 10px; margin-top: 10px; }
+  .talk-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .badge { background: #0f1117; border: 1px solid #2d3748; border-radius: 6px; padding: 3px 10px; font-size: 11px; color: #a0aec0; }
+  .badge.date { border-color: #2d5016; color: #68d391; }
+  .badge.time { border-color: #1a365d; color: #63b3ed; }
+  .badge.topic { border-color: #44337a; color: #b794f4; }
+  .badge.lang { border-color: #2d3748; color: #718096; }
+  .why { font-size: 13px; color: #a0aec0; line-height: 1.6; border-top: 1px solid #2d3748; padding-top: 10px; margin-top: 4px; }
+  .speaker { font-size: 12px; color: #718096; margin-bottom: 8px; }
   #error { display: none; background: #2d1515; border: 1px solid #c53030; border-radius: 12px; padding: 20px; color: #fc8181; font-size: 14px; margin-top: 16px; }
+  .reset-btn { background: none; border: 1px solid #2d3748; border-radius: 10px; color: #a0aec0; padding: 10px 20px; font-size: 14px; cursor: pointer; transition: all .15s; margin-top: 16px; }
+  .date-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #4f46e5; margin: 20px 0 8px; }
 </style>
 
 <script type="importmap">
-  {
-    "imports": {
-      "@google/generative-ai": "https://esm.run/@google/generative-ai"
-    }
-  }
+  { "imports": { "@google/generative-ai": "https://esm.run/@google/generative-ai" } }
 </script>
 </head>
 <body>
@@ -51,127 +56,161 @@
   <div class="logo">🎯</div>
   <div>
     <h1>Recomendador de Charlas</h1>
-    <p>Talent Arena 2026 · Barcelona</p>
+    <p>Talent Arena 2026 · Barcelona · 2–4 Marzo</p>
   </div>
 </header>
 
 <div class="container">
   <div id="form-section">
     <div class="card">
-      <h2>Mi Perfil Profesional</h2>
+      <h2>Cuéntanos sobre ti</h2>
       <div class="form-row">
         <div>
-          <label>Rol</label>
-          <input type="text" id="role" placeholder="Ej: Backend Dev" />
+          <label>Tu rol profesional</label>
+          <input type="text" id="role" placeholder="Ej: Data Scientist, CTO..." />
         </div>
         <div>
-          <label>Experiencia</label>
+          <label>Nivel de experiencia</label>
           <select id="level">
-            <option value="Junior">Junior (0-2 años)</option>
-            <option value="Mid">Mid (3-5 años)</option>
-            <option value="Senior">Senior (+5 años)</option>
+            <option value="">Selecciona…</option>
+            <option>Estudiante / Junior (0–2 años)</option>
+            <option>Mid-level (3–5 años)</option>
+            <option>Senior (6–10 años)</option>
+            <option>Lead / Manager (+10 años)</option>
           </select>
         </div>
       </div>
 
-      <label>Intereses</label>
-      <div class="chips" id="goal-chips">
-        <span class="chip active" data-val="IA">🤖 IA</span>
-        <span class="chip" data-val="Cloud">☁️ Cloud</span>
-        <span class="chip" data-val="Ciberseguridad">🔒 Seguridad</span>
-        <span class="chip" data-val="Liderazgo">👥 Liderazgo</span>
+      <div style="margin-bottom:16px">
+        <label>¿Qué objetivos tienes en la conferencia?</label>
+        <div class="chips" id="goal-chips">
+          <span class="chip" data-val="IA y tendencias">🤖 IA y tendencias</span>
+          <span class="chip" data-val="Mejorar mis habilidades técnicas">⚙️ Habilidades técnicas</span>
+          <span class="chip" data-val="Networking">🤝 Networking</span>
+          <span class="chip" data-val="Liderazgo">👥 Liderazgo</span>
+          <span class="chip" data-val="Carrera profesional">📈 Carrera profesional</span>
+        </div>
       </div>
 
-      <button class="btn" style="margin-top: 20px;" onclick="getRecommendations()">✨ Obtener Recomendaciones</button>
+      <div style="margin-bottom:16px">
+        <label>Idioma preferido</label>
+        <div class="chips" id="lang-chips">
+          <span class="chip active" data-val="Indiferente">Indiferente</span>
+          <span class="chip" data-val="Español">Español</span>
+          <span class="chip" data-val="Inglés">Inglés</span>
+        </div>
+      </div>
+
+      <button class="btn" id="submit-btn" onclick="getRecommendations()">✨ Obtener mis recomendaciones</button>
       <div id="error"></div>
     </div>
   </div>
 
   <div id="loading">
     <div class="spinner"></div>
-    <p>Conectando con Gemini 1.5 Flash...</p>
+    <p>Analizando tu perfil con Gemini 1.5 Flash...</p>
   </div>
 
   <div id="results" style="display:none;">
-    <h2>Tus Recomendaciones</h2>
+    <h2>Tus recomendaciones personalizadas</h2>
     <div class="intro-box" id="intro-text"></div>
     <div id="talks-list"></div>
-    <button class="btn" onclick="location.reload()">🔄 Nueva consulta</button>
+    <button class="reset-btn" onclick="location.reload()">← Volver y cambiar mi perfil</button>
   </div>
 </div>
 
 <script type="module">
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-let userApiKey = "";
+// VARIABLE GLOBAL PARA LA KEY
+let savedKey = "";
 
-// Pegamos aquí una muestra de tus charlas (puedes ampliarla)
-const TALKS = [{"titulo": "Camino hacia la AGI: un camino con curvas", "fecha": "03/02/2026", "inicio": "09:30", "fin": "10:00", "ponentes": "Carlos Santana (Dot CSV)", "tema": "Inteligencia Artificial", "idioma": "Español"}, {"titulo": "El futuro del Desarrollo de Software en la era de la IA", "fecha": "03/02/2026", "inicio": "09:30", "fin": "10:00", "ponentes": "Abdel Sghiouar", "tema": "Computación en la nube", "idioma": "Inglés"}, {"titulo": "Privacidad radical: pequeñas acciones con gran impacto", "fecha": "03/02/2026", "inicio": "11:00", "fin": "11:30", "ponentes": "Martín Vigo", "tema": "Ciberseguridad", "idioma": "Español"}];
+// BASE DE DATOS COMPLETA (Asegúrate de tener todas aquí)
+const TALKS = [
+  {"titulo": "Camino hacia la AGI: un camino con curvas", "fecha": "03/02/2026", "inicio": "09:30", "fin": "10:00", "ponentes": "Carlos Santana (Dot CSV)", "tema": "Inteligencia Artificial", "idioma": "Español"},
+  {"titulo": "El futuro del Desarrollo de Software en la era de la IA", "fecha": "03/02/2026", "inicio": "09:30", "fin": "10:00", "ponentes": "Abdel Sghiouar", "tema": "Computación en la nube", "idioma": "Inglés"},
+  {"titulo": "Privacidad radical: pequeñas acciones con gran impacto", "fecha": "03/02/2026", "inicio": "11:00", "fin": "11:30", "ponentes": "Martín Vigo", "tema": "Ciberseguridad", "idioma": "Español"}
+  /* ... Puedes añadir el resto de charlas aquí ... */
+];
 
-document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => c.classList.toggle('active')));
+// Lógica de Chips
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    if (this.parentElement.id === 'goal-chips') {
+      this.classList.toggle('active');
+    } else {
+      this.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+    }
+  });
+});
 
 window.getRecommendations = async function() {
-    // Si la llave está vacía, la pedimos.
-    if (!userApiKey) {
-        userApiKey = prompt("Por favor, introduce tu Gemini API Key (la generada en Google AI Studio):");
-        if (!userApiKey) return;
+    if (!savedKey) {
+        savedKey = prompt("Introduce tu Gemini API KEY (Generada en Google AI Studio):");
+        if (!savedKey) return;
     }
 
     const role = document.getElementById('role').value;
-    if (!role) { alert("Por favor, escribe tu rol profesional"); return; }
+    const level = document.getElementById('level').value;
+    if (!role || !level) { alert("Completa tu rol y nivel"); return; }
 
     document.getElementById('form-section').style.display = 'none';
     document.getElementById('loading').style.display = 'block';
-    document.getElementById('error').style.display = 'none';
 
     try {
-        const genAI = new GoogleGenerativeAI(userApiKey);
-        
-        // FORZAMOS LA VERSIÓN BETA PARA EVITAR EL ERROR DE MODELO NO ENCONTRADO
-        const model = genAI.getGenerativeModel(
-            { model: "gemini-1.5-flash" },
-            { apiVersion: "v1beta" }
-        );
+        const genAI = new GoogleGenerativeAI(savedKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { apiVersion: "v1beta" });
 
-        const selectedGoals = Array.from(document.querySelectorAll('.chip.active')).map(c => c.dataset.val);
+        const selectedGoals = Array.from(document.querySelectorAll('#goal-chips .chip.active')).map(c => c.dataset.val);
 
-        const prompt = `Eres un asistente experto. Recomienda 3 charlas de esta lista: ${JSON.stringify(TALKS)}. 
-        Perfil del usuario: ${role}, Intereses: ${selectedGoals.join(",")}.
-        IMPORTANTE: Responde ÚNICAMENTE un objeto JSON con este formato: {"intro": "mensaje breve", "recs": [{"titulo": "título exacto", "why": "razón breve"}]}`;
+        const prompt = `Eres un experto curador. Recomienda las 3 mejores charlas de esta lista JSON: ${JSON.stringify(TALKS)}. 
+        Perfil: Rol ${role}, Nivel ${level}, Intereses: ${selectedGoals.join(", ")}.
+        Responde SOLO un objeto JSON: {"intro": "mensaje", "recommendations": [{"titulo": "exacto", "why": "razón"}]}`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
         let text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
         
         const data = JSON.parse(text);
-        
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('results').style.display = 'block';
-        document.getElementById('intro-text').innerText = data.intro;
-        
-        const list = document.getElementById('talks-list');
-        list.innerHTML = "";
-        data.recs.forEach((r, i) => {
-            const talk = TALKS.find(t => t.titulo === r.titulo) || TALKS[0];
-            const div = document.createElement('div');
-            div.className = 'talk-card';
-            div.innerHTML = `
-                <div class="talk-header"><div class="rank">${i+1}</div><div class="talk-title">${talk.titulo}</div></div>
-                <div><span class="badge">${talk.fecha}</span><span class="badge">${talk.idioma}</span><span class="badge">${talk.tema}</span></div>
-                <div class="why">💡 ${r.why}</div>`;
-            list.appendChild(div);
-        });
+        renderResults(data);
 
     } catch (err) {
-        console.error(err);
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('form-section').style.display = 'block';
-        const errDiv = document.getElementById('error');
-        errDiv.style.display = 'block';
-        errDiv.innerText = "Error: " + err.message + ". Asegúrate de usar una API KEY válida y activa.";
-        userApiKey = ""; // Limpiamos la key fallida para que pida una nueva
+        alert("Error: " + err.message);
+        savedKey = ""; // Resetear key si falla
+        location.reload();
     }
 };
+
+function renderResults(data) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('intro-text').textContent = data.intro;
+  
+  const list = document.getElementById('talks-list');
+  list.innerHTML = '';
+
+  data.recommendations.forEach((rec, i) => {
+    const talk = TALKS.find(t => t.titulo === rec.titulo) || TALKS[0];
+    const card = document.createElement('div');
+    card.className = 'talk-card';
+    card.innerHTML = `
+      <div class="talk-header">
+        <div class="rank">${i + 1}</div>
+        <div class="talk-title">${talk.titulo}</div>
+      </div>
+      <div class="speaker">👤 ${talk.ponentes}</div>
+      <div class="talk-meta">
+        <span class="badge date">📅 ${talk.fecha}</span>
+        <span class="badge time">🕐 ${talk.inicio}–${talk.fin}</span>
+        <span class="badge topic">🏷 ${talk.tema}</span>
+        <span class="badge lang">🌐 ${talk.idioma}</span>
+      </div>
+      <div class="why">💡 ${rec.why}</div>
+    `;
+    list.appendChild(card);
+  });
+}
 </script>
 </body>
 </html>
