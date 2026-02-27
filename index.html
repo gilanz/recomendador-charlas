@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Recomendador de Charlas · Talent Arena 2026</title>
 <style>
-  /* --- Estilos originales mantenidos --- */
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
   header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); border-bottom: 1px solid #2d3748; padding: 24px 32px; display: flex; align-items: center; gap: 16px; }
@@ -104,37 +103,31 @@
 <script type="module">
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// VARIABLE PARA LA KEY (Se pedirá al usuario para evitar bloqueos en GitHub)
 let userApiKey = "";
 
-// BASE DE DATOS DE CHARLAS (Aquí puedes pegar tu lista completa de TALKS)
-const TALKS = [
-    {"titulo": "Camino hacia la AGI", "fecha": "03/02/2026", "inicio": "09:30", "fin": "10:00", "ponentes": "Carlos Santana", "tema": "IA", "idioma": "Español"},
-    {"titulo": "El futuro del Desarrollo", "fecha": "03/02/2026", "inicio": "09:30", "fin": "10:00", "ponentes": "Abdel Sghiouar", "tema": "Cloud", "idioma": "Inglés"},
-    {"titulo": "Privacidad radical", "fecha": "03/02/2026", "inicio": "11:00", "fin": "11:30", "ponentes": "Martín Vigo", "tema": "Seguridad", "idioma": "Español"}
-];
+// Pegamos aquí una muestra de tus charlas (puedes ampliarla)
+const TALKS = [{"titulo": "Camino hacia la AGI: un camino con curvas", "fecha": "03/02/2026", "inicio": "09:30", "fin": "10:00", "ponentes": "Carlos Santana (Dot CSV)", "tema": "Inteligencia Artificial", "idioma": "Español"}, {"titulo": "El futuro del Desarrollo de Software en la era de la IA", "fecha": "03/02/2026", "inicio": "09:30", "fin": "10:00", "ponentes": "Abdel Sghiouar", "tema": "Computación en la nube", "idioma": "Inglés"}, {"titulo": "Privacidad radical: pequeñas acciones con gran impacto", "fecha": "03/02/2026", "inicio": "11:00", "fin": "11:30", "ponentes": "Martín Vigo", "tema": "Ciberseguridad", "idioma": "Español"}];
 
-// Lógica de Chips
 document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => c.classList.toggle('active')));
 
 window.getRecommendations = async function() {
-    // 1. Validar API KEY
+    // Si la llave está vacía, la pedimos.
     if (!userApiKey) {
-        userApiKey = prompt("Ingresa tu Gemini API Key (no se guardará en el servidor):");
+        userApiKey = prompt("Por favor, introduce tu Gemini API Key (la generada en Google AI Studio):");
         if (!userApiKey) return;
     }
 
     const role = document.getElementById('role').value;
-    if (!role) { alert("Escribe tu rol"); return; }
+    if (!role) { alert("Por favor, escribe tu rol profesional"); return; }
 
-    // UI
     document.getElementById('form-section').style.display = 'none';
     document.getElementById('loading').style.display = 'block';
+    document.getElementById('error').style.display = 'none';
 
     try {
         const genAI = new GoogleGenerativeAI(userApiKey);
         
-        // --- CAMBIO CLAVE: v1beta y modelo 1.5-flash ---
+        // FORZAMOS LA VERSIÓN BETA PARA EVITAR EL ERROR DE MODELO NO ENCONTRADO
         const model = genAI.getGenerativeModel(
             { model: "gemini-1.5-flash" },
             { apiVersion: "v1beta" }
@@ -142,9 +135,9 @@ window.getRecommendations = async function() {
 
         const selectedGoals = Array.from(document.querySelectorAll('.chip.active')).map(c => c.dataset.val);
 
-        const prompt = `Como experto tech, recomienda 3 charlas de este JSON: ${JSON.stringify(TALKS)}. 
-        Perfil: ${role}, Goles: ${selectedGoals.join(",")}.
-        Responde SOLO un JSON: {"intro": "mensaje", "recs": [{"titulo": "exacto", "why": "razón"}]}`;
+        const prompt = `Eres un asistente experto. Recomienda 3 charlas de esta lista: ${JSON.stringify(TALKS)}. 
+        Perfil del usuario: ${role}, Intereses: ${selectedGoals.join(",")}.
+        IMPORTANTE: Responde ÚNICAMENTE un objeto JSON con este formato: {"intro": "mensaje breve", "recs": [{"titulo": "título exacto", "why": "razón breve"}]}`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -152,7 +145,6 @@ window.getRecommendations = async function() {
         
         const data = JSON.parse(text);
         
-        // Render
         document.getElementById('loading').style.display = 'none';
         document.getElementById('results').style.display = 'block';
         document.getElementById('intro-text').innerText = data.intro;
@@ -165,7 +157,7 @@ window.getRecommendations = async function() {
             div.className = 'talk-card';
             div.innerHTML = `
                 <div class="talk-header"><div class="rank">${i+1}</div><div class="talk-title">${talk.titulo}</div></div>
-                <div><span class="badge">${talk.fecha}</span><span class="badge">${talk.idioma}</span></div>
+                <div><span class="badge">${talk.fecha}</span><span class="badge">${talk.idioma}</span><span class="badge">${talk.tema}</span></div>
                 <div class="why">💡 ${r.why}</div>`;
             list.appendChild(div);
         });
@@ -176,8 +168,8 @@ window.getRecommendations = async function() {
         document.getElementById('form-section').style.display = 'block';
         const errDiv = document.getElementById('error');
         errDiv.style.display = 'block';
-        errDiv.innerText = "Error: " + err.message + ". Verifica tu API KEY y que no tenga restricciones regionales.";
-        userApiKey = ""; // Resetear key si falló
+        errDiv.innerText = "Error: " + err.message + ". Asegúrate de usar una API KEY válida y activa.";
+        userApiKey = ""; // Limpiamos la key fallida para que pida una nueva
     }
 };
 </script>
