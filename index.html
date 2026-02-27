@@ -1,216 +1,226 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recomendador de Charlas · Talent Arena 2026</title>
-<style>
-  /* MANTENEMOS TUS ESTILOS ORIGINALES INTACTOS */
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
-  header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%); border-bottom: 1px solid #2d3748; padding: 24px 32px; display: flex; align-items: center; gap: 16px; }
-  header .logo { font-size: 28px; }
-  header h1 { font-size: 20px; font-weight: 700; color: #fff; }
-  header p { font-size: 13px; color: #718096; margin-top: 2px; }
-  .container { max-width: 880px; margin: 0 auto; padding: 40px 24px; }
-  .card { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 16px; padding: 28px; margin-bottom: 24px; }
-  .card h2 { font-size: 16px; font-weight: 600; color: #a0aec0; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 20px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  @media (max-width: 580px) { .form-row { grid-template-columns: 1fr; } }
-  label { display: block; font-size: 13px; font-weight: 600; color: #a0aec0; margin-bottom: 6px; }
-  input, select, textarea { width: 100%; background: #0f1117; border: 1px solid #2d3748; border-radius: 10px; color: #e2e8f0; padding: 11px 14px; font-size: 14px; font-family: inherit; transition: border .2s; outline: none; }
-  input:focus, select:focus, textarea:focus { border-color: #4f46e5; }
-  textarea { resize: vertical; min-height: 90px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-  .chip { background: #0f1117; border: 1px solid #2d3748; border-radius: 20px; padding: 5px 14px; font-size: 12px; cursor: pointer; transition: all .15s; color: #a0aec0; user-select: none; }
-  .chip.active { background: #4f46e5; border-color: #4f46e5; color: #fff; }
-  .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none; border-radius: 12px; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity .2s, transform .1s; letter-spacing: .02em; }
-  #loading { display: none; text-align: center; padding: 40px; color: #718096; font-size: 15px; }
-  .spinner { width: 40px; height: 40px; border: 3px solid #2d3748; border-top-color: #4f46e5; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .intro-box { background: linear-gradient(135deg, #1e1b4b 0%, #1a1f2e 100%); border: 1px solid #4f46e5; border-radius: 12px; padding: 20px; margin-bottom: 28px; font-size: 14px; line-height: 1.7; color: #c7d2fe; white-space: pre-wrap; }
-  .talk-card { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 14px; padding: 20px; margin-bottom: 16px; transition: border-color .2s; }
-  .talk-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 12px; }
-  .rank { min-width: 36px; height: 36px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #fff; flex-shrink: 0; }
-  .talk-title { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.4; }
-  .talk-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-  .badge { background: #0f1117; border: 1px solid #2d3748; border-radius: 6px; padding: 3px 10px; font-size: 11px; color: #a0aec0; }
-  .badge.date { border-color: #2d5016; color: #68d391; }
-  .badge.time { border-color: #1a365d; color: #63b3ed; }
-  .badge.topic { border-color: #44337a; color: #b794f4; }
-  .badge.lang { border-color: #2d3748; color: #718096; }
-  .why { font-size: 13px; color: #a0aec0; line-height: 1.6; border-top: 1px solid #2d3748; padding-top: 10px; margin-top: 4px; }
-  .speaker { font-size: 12px; color: #718096; margin-bottom: 8px; }
-  #error { display: none; background: #2d1515; border: 1px solid #c53030; border-radius: 12px; padding: 20px; color: #fc8181; font-size: 14px; margin-top: 16px; }
-  .reset-btn { background: none; border: 1px solid #2d3748; border-radius: 10px; color: #a0aec0; padding: 10px 20px; font-size: 14px; cursor: pointer; transition: all .15s; margin-top: 16px; }
-  .date-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #4f46e5; margin: 20px 0 8px; }
-</style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Recomendador de Charlas · Talent Arena</title>
 
-<script type="importmap">
-  { "imports": { "@google/generative-ai": "https://esm.run/@google/generative-ai" } }
-</script>
+<style>
+:root {
+  --bg: #0b1020;
+  --panel: #11162a;
+  --panel-border: #1f2647;
+  --text: #e6e9f2;
+  --muted: #9aa0c3;
+  --chip: #0f1428;
+  --chip-border: #242c55;
+  --primary: #6c63ff;
+  --primary-strong: #7c73ff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: radial-gradient(1200px 600px at 50% -200px, #1a2050 0%, var(--bg) 60%);
+  color: var(--text);
+}
+
+.container {
+  max-width: 1100px;
+  margin: 48px auto;
+  padding: 0 20px;
+}
+
+.card {
+  background: linear-gradient(180deg, #121733, #0e132b);
+  border: 1px solid var(--panel-border);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.4);
+}
+
+h2 {
+  margin: 0 0 28px;
+  font-size: 22px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #c7ccff;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+input, select, textarea {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #0b1024;
+  border: 1px solid var(--panel-border);
+  color: var(--text);
+  font-size: 15px;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.section {
+  margin-top: 28px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.chip {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--chip);
+  border: 1px solid var(--chip-border);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: all .2s ease;
+}
+
+.chip.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  border-color: transparent;
+  color: #fff;
+}
+
+.cta {
+  margin-top: 40px;
+  width: 100%;
+  padding: 18px;
+  font-size: 17px;
+  font-weight: 700;
+  border-radius: 18px;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+}
+</style>
 </head>
+
 <body>
 
-<header>
-  <div class="logo">🎯</div>
-  <div>
-    <h1>Recomendador de Charlas</h1>
-    <p>Talent Arena 2026 · Barcelona · 2–4 Marzo</p>
-  </div>
-</header>
-
 <div class="container">
-  <div id="form-section">
-    <div class="card">
-      <h2>Cuéntanos sobre ti</h2>
-      <div class="form-row">
-        <div>
-          <label>Tu rol profesional</label>
-          <input type="text" id="role" placeholder="Ej: Data Scientist, CTO..." />
-        </div>
-        <div>
-          <label>Nivel de experiencia</label>
-          <select id="level">
-            <option value="">Selecciona…</option>
-            <option>Estudiante / Junior (0–2 años)</option>
-            <option>Mid-level (3–5 años)</option>
-            <option>Senior (6–10 años)</option>
-            <option>Lead / Manager (+10 años)</option>
-          </select>
-        </div>
+  <div class="card">
+
+    <h2>Cuéntanos sobre ti</h2>
+
+    <div class="grid-2">
+      <div>
+        <label>Tu rol profesional</label>
+        <input id="role" placeholder="Ej: Data Scientist, CTO, Desarrollador backend..." />
       </div>
 
-      <div style="margin-bottom:16px">
-        <label>¿Qué objetivos tienes en la conferencia?</label>
-        <div class="chips" id="goal-chips">
-          <span class="chip" data-val="IA y tendencias">🤖 IA y tendencias</span>
-          <span class="chip" data-val="Mejorar mis habilidades técnicas">⚙️ Habilidades técnicas</span>
-          <span class="chip" data-val="Networking">🤝 Networking</span>
-          <span class="chip" data-val="Liderazgo">👥 Liderazgo</span>
-          <span class="chip" data-val="Carrera profesional">📈 Carrera profesional</span>
-        </div>
+      <div>
+        <label>Nivel de experiencia</label>
+        <select id="level">
+          <option value="">Selecciona…</option>
+          <option>Junior</option>
+          <option>Mid</option>
+          <option>Senior</option>
+          <option>Lead</option>
+        </select>
       </div>
-
-      <div style="margin-bottom:16px">
-        <label>Idioma preferido</label>
-        <div class="chips" id="lang-chips">
-          <span class="chip active" data-val="Indiferente">Indiferente</span>
-          <span class="chip" data-val="Español">Español</span>
-          <span class="chip" data-val="Inglés">Inglés</span>
-        </div>
-      </div>
-
-      <button class="btn" id="submit-btn" onclick="getRecommendations()">✨ Obtener mis recomendaciones</button>
-      <div id="error"></div>
     </div>
-  </div>
 
-  <div id="loading">
-    <div class="spinner"></div>
-    <p>Analizando tu perfil con Gemini 1.5 Flash...</p>
-  </div>
+    <div class="section">
+      <label>¿Qué objetivos tienes en la conferencia?</label>
+      <div class="chips" id="goals">
+        <div class="chip">🤖 IA y tendencias</div>
+        <div class="chip">⚙️ Habilidades técnicas</div>
+        <div class="chip">🤝 Networking</div>
+        <div class="chip">👥 Liderazgo</div>
+        <div class="chip">📈 Carrera profesional</div>
+        <div class="chip">🔐 Ciberseguridad</div>
+        <div class="chip">☁️ Cloud / DevOps</div>
+        <div class="chip">🚀 Startups</div>
+        <div class="chip">🌈 Diversidad</div>
+      </div>
+    </div>
 
-  <div id="results" style="display:none;">
-    <h2>Tus recomendaciones personalizadas</h2>
-    <div class="intro-box" id="intro-text"></div>
-    <div id="talks-list"></div>
-    <button class="reset-btn" onclick="location.reload()">← Volver y cambiar mi perfil</button>
+    <div class="section">
+      <label>Idioma preferido</label>
+      <div class="chips single" id="language">
+        <div class="chip active">Indiferente</div>
+        <div class="chip">Español</div>
+        <div class="chip">Inglés</div>
+        <div class="chip">Catalán</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <label>¿Qué días puedes asistir?</label>
+      <div class="chips single" id="days">
+        <div class="chip active">Todos los días</div>
+        <div class="chip">2 Feb (Lunes)</div>
+        <div class="chip">3 Mar (Martes)</div>
+        <div class="chip">4 Mar (Miércoles)</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <label>Cuéntanos más sobre tus intereses (opcional)</label>
+      <textarea id="extra"
+        placeholder="Ej: Trabajo en una startup de salud y quiero entender cómo aplicar IA en mi producto…"></textarea>
+    </div>
+
+    <button class="cta" onclick="submitForm()">
+      ✨ Obtener mis recomendaciones personalizadas
+    </button>
+
   </div>
 </div>
 
-<script type="module">
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-// VARIABLE GLOBAL PARA LA KEY
-let savedKey = "";
-
-// BASE DE DATOS COMPLETA (Asegúrate de tener todas aquí)
-const TALKS = [
-  {"titulo": "Camino hacia la AGI: un camino con curvas", "fecha": "03/02/2026", "inicio": "09:30", "fin": "10:00", "ponentes": "Carlos Santana (Dot CSV)", "tema": "Inteligencia Artificial", "idioma": "Español"},
-  {"titulo": "El futuro del Desarrollo de Software en la era de la IA", "fecha": "03/02/2026", "inicio": "09:30", "fin": "10:00", "ponentes": "Abdel Sghiouar", "tema": "Computación en la nube", "idioma": "Inglés"},
-  {"titulo": "Privacidad radical: pequeñas acciones con gran impacto", "fecha": "03/02/2026", "inicio": "11:00", "fin": "11:30", "ponentes": "Martín Vigo", "tema": "Ciberseguridad", "idioma": "Español"}
-  /* ... Puedes añadir el resto de charlas aquí ... */
-];
-
-// Lógica de Chips
+<script>
+/* === chips behaviour === */
 document.querySelectorAll('.chip').forEach(chip => {
-  chip.addEventListener('click', function() {
-    if (this.parentElement.id === 'goal-chips') {
-      this.classList.toggle('active');
-    } else {
-      this.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-      this.classList.add('active');
+  chip.addEventListener('click', () => {
+    const parent = chip.parentElement;
+    if (parent.classList.contains('single')) {
+      parent.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
     }
+    chip.classList.toggle('active');
   });
 });
 
-window.getRecommendations = async function() {
-    if (!savedKey) {
-        savedKey = prompt("Introduce tu Gemini API KEY (Generada en Google AI Studio):");
-        if (!savedKey) return;
-    }
+/* === submit (temporal) === */
+function submitForm() {
+  const data = {
+    role: document.getElementById('role').value,
+    level: document.getElementById('level').value,
+    goals: [...document.querySelectorAll('#goals .chip.active')].map(c => c.textContent),
+    language: document.querySelector('#language .chip.active')?.textContent,
+    days: document.querySelector('#days .chip.active')?.textContent,
+    extra: document.getElementById('extra').value
+  };
 
-    const role = document.getElementById('role').value;
-    const level = document.getElementById('level').value;
-    if (!role || !level) { alert("Completa tu rol y nivel"); return; }
-
-    document.getElementById('form-section').style.display = 'none';
-    document.getElementById('loading').style.display = 'block';
-
-    try {
-        const genAI = new GoogleGenerativeAI(savedKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }, { apiVersion: "v1beta" });
-
-        const selectedGoals = Array.from(document.querySelectorAll('#goal-chips .chip.active')).map(c => c.dataset.val);
-
-        const prompt = `Eres un experto curador. Recomienda las 3 mejores charlas de esta lista JSON: ${JSON.stringify(TALKS)}. 
-        Perfil: Rol ${role}, Nivel ${level}, Intereses: ${selectedGoals.join(", ")}.
-        Responde SOLO un objeto JSON: {"intro": "mensaje", "recommendations": [{"titulo": "exacto", "why": "razón"}]}`;
-
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
-        
-        const data = JSON.parse(text);
-        renderResults(data);
-
-    } catch (err) {
-        alert("Error: " + err.message);
-        savedKey = ""; // Resetear key si falla
-        location.reload();
-    }
-};
-
-function renderResults(data) {
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('results').style.display = 'block';
-  document.getElementById('intro-text').textContent = data.intro;
-  
-  const list = document.getElementById('talks-list');
-  list.innerHTML = '';
-
-  data.recommendations.forEach((rec, i) => {
-    const talk = TALKS.find(t => t.titulo === rec.titulo) || TALKS[0];
-    const card = document.createElement('div');
-    card.className = 'talk-card';
-    card.innerHTML = `
-      <div class="talk-header">
-        <div class="rank">${i + 1}</div>
-        <div class="talk-title">${talk.titulo}</div>
-      </div>
-      <div class="speaker">👤 ${talk.ponentes}</div>
-      <div class="talk-meta">
-        <span class="badge date">📅 ${talk.fecha}</span>
-        <span class="badge time">🕐 ${talk.inicio}–${talk.fin}</span>
-        <span class="badge topic">🏷 ${talk.tema}</span>
-        <span class="badge lang">🌐 ${talk.idioma}</span>
-      </div>
-      <div class="why">💡 ${rec.why}</div>
-    `;
-    list.appendChild(card);
-  });
+  console.log('Perfil capturado:', data);
+  alert('UI restaurada correctamente 👍\n\nSiguiente paso: conectar backend.');
 }
 </script>
+
 </body>
 </html>
